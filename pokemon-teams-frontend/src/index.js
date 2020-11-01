@@ -12,20 +12,21 @@ const main = document.querySelector('main')
 
 function run() {
   fetchTrainers()
-  addReleaseBtnListener()
+  addMainBtnListener()
 }
 
 function fetchTrainers() {
   fetch(TRAINERS_URL)
   .then(resp => resp.json())
-  .then(trainers => trainers.forEach(renderTrainer)
-  )
+  .then(trainers => {
+    trainers.forEach(renderTrainer)
+    })
 }
 
 function renderTrainer(trainer) {
   main.innerHTML += 
   `<div class="card" data-id=${trainer.id}><p>${trainer.name}</p>
-    <button data-trainer-id="${trainer.id}">Add Pokemon</button>
+    <button class="create" data-trainer-id="${trainer.id}">Add Pokemon</button>
     <ul id=${trainer.id}>
     </ul>
   </div>`
@@ -39,27 +40,49 @@ function renderPokemon(pokemon) {
   ul.append(li)
 }
 
-function addReleaseBtnListener() {
+function addMainBtnListener() {
   main.addEventListener('click', function(e) {
     if (e.target.className === 'release') {
       deletePokemon(e)
     }
+    else if (e.target.className === 'create') {
+      createPokemon(e)
+    } 
   })
-
-  function deletePokemon(e) {
-    const pokeId = e.target.dataset.pokemonId
-
-    fetch(`http://localhost:3000/pokemons/${pokeId}`, {
-      method: 'DELETE'
-    })
-    .then(resp => resp.json())
-    .then(deletedPoke => {
-      e.target.parentNode.remove()
-      console.log(`${deletedPoke.nickname} successfully released!`)
-    })
-    // .catch(error => addErrorMessage(error))
-  }
 }
+
+function createPokemon(e) {
+  const trainerId = e.target.dataset.trainerId
+
+  const reqObj = {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    trainer_id: trainerId
+    })
+  }
+
+  fetch(POKEMONS_URL, reqObj)
+    .then(resp => resp.json())
+    .then(pokemon => renderPokemon(pokemon))
+}
+
+function deletePokemon(e) {
+  const pokeId = e.target.dataset.pokemonId
+
+  fetch(`http://localhost:3000/pokemons/${pokeId}`, {
+    method: 'DELETE'
+  })
+  .then(resp => resp.json())
+  .then(deletedPoke => {
+    e.target.parentNode.remove()
+    console.log(`${deletedPoke.nickname} successfully released!`)
+  })
+  // .catch(error => addErrorMessage(error))
+}
+
 
 
 
